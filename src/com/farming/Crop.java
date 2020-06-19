@@ -10,9 +10,10 @@ public class Crop {
     private Integer growingTime;
     private Integer canBePlantedIn;
     private Boolean canUseSeeds;
+    private Boolean canFeedAnimals;
     private Integer protectionCost;
     private Integer groundPreparingCost;
-    private Integer tonsPerHectar;
+    private Integer tonsPerH;
     private Integer harvestCost;
 
 //getters
@@ -40,14 +41,16 @@ public class Crop {
     public Boolean getCanUseSeeds() {
         return canUseSeeds;
     }
+    public Boolean getCanFeedAnimals() {    return canFeedAnimals;    }
+
     public Integer getProtectionCost() {
         return protectionCost;
     }
     public Integer getGroundPreparingCost() {
         return groundPreparingCost;
     }
-    public Integer getTonsPerHectar() {
-        return tonsPerHectar;
+    public Integer getTonsPerH() {
+        return tonsPerH;
     }
     public Integer getHarvestCost() {
         return harvestCost;
@@ -78,14 +81,15 @@ public class Crop {
     public void setCanUseSeeds(Boolean canUseSeeds) {
         this.canUseSeeds = canUseSeeds;
     }
+    public void setCanFeedAnimals(Boolean canFeedAnimals) {    this.canFeedAnimals = canFeedAnimals;    }
     public void setProtectionCost(Integer protectionCost) {
         this.protectionCost = protectionCost;
     }
     public void setGroundPreparingCost(Integer groundPreparingCost) {
         this.groundPreparingCost = groundPreparingCost;
     }
-    public void setTonsPerHectar(Integer tonsPerHectar) {
-        this.tonsPerHectar = tonsPerHectar;
+    public void setTonsPerH(Integer tonsPerH) {
+        this.tonsPerH = tonsPerH;
     }
     public void setHarvestCost(Integer harvestCost) {
         this.harvestCost = harvestCost;
