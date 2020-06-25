@@ -1,37 +1,50 @@
 package com.farming;
 
+import java.util.ArrayList;
+
 public class Player {
-    private String name;
-    private Integer cash = 500000;
+
+    private Integer cash;
     private Farm farm;
+    private Game game;
 
-    public void buyBuilding(Building building, Integer index) {
-        if (cash > building.getPrice()) {
-            System.out.println("You just bought yourself a building!");
-//            this.buildings[index] = building;
-        }
+    public Player() {
+        this.cash  = 500000;
+        this.farm = null;
+        this.game = new Game(this);
     }
 
-
-//Getters
-    public String getName() {
-        return name;
+    public void displayCash() {
+        System.out.println("Gracz posiada obecnie "+ cash + " PLN.");
     }
+
+    //Getters
     public Integer getCash() {
         return cash;
     }
+    public Integer getWeek(){
+        return game.getWeek();
+    }
+
     public Farm getFarm() {
         return farm;
     }
-//Setters
-    public void setName(String name) {
-        this.name = name;
+
+    public Game getGame() {
+        return game;
+    }
+
+    //Setters
+    public void setGame(Game game) {
+        this.game = game;
     }
     public void setCash(Integer cash) {
         this.cash = cash;
     }
+
     public void setFarm(Farm farm) {
-        this.farm = farm;
+            this.farm = farm;
+
     }
 }
 
