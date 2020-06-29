@@ -6,7 +6,7 @@ public class Building {
 
     private String type;
     private Integer canHoldAnimals;
-    private Integer canHoldSeeds;
+    private Integer canHoldStocks;
     private Integer price;
 
     public void buyBuilding(Player player, Farm farm) {
@@ -19,10 +19,10 @@ public class Building {
         }
     }
 
-    public Building(String type, Integer canHoldAnimals, Integer canHoldSeeds, Integer price) {
+    public Building(String type, Integer canHoldAnimals, Integer canHoldStocks, Integer price) {
         this.type = type;
         this.canHoldAnimals = canHoldAnimals;
-        this.canHoldSeeds = canHoldSeeds;
+        this.canHoldStocks = canHoldStocks;
         this.price = price;
     }
 
@@ -31,7 +31,7 @@ public class Building {
         return "Budynek" +
                 "rodzaj: '" + type + '\'' +
                 ", nada się na zwierzęta: " + (canHoldAnimals>0) +
-                ", nada się na ziarna/plony: " + (canHoldSeeds>0) +
+                ", nada się na ziarna/plony: " + (canHoldStocks >0) +
                 ", cena: " + price;
     }
 
@@ -43,8 +43,8 @@ public class Building {
         return canHoldAnimals;
     }
 
-    public Integer getCanHoldSeeds() {
-        return canHoldSeeds;
+    public Integer getCanHoldStocks() {
+        return canHoldStocks;
     }
 
     public Integer getPrice() {
@@ -59,8 +59,8 @@ public class Building {
         this.canHoldAnimals = canHoldAnimals;
     }
 
-    public void setCanHoldSeeds(Integer canHoldSeeds) {
-        this.canHoldSeeds = canHoldSeeds;
+    public void setCanHoldStocks(Integer canHoldStocks) {
+        this.canHoldStocks = canHoldStocks;
     }
 
     public void setPrice(Integer price) {

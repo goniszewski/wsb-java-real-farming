@@ -4,56 +4,55 @@ public class Crop {
 
     private String name;
     private Integer age;
-    private Integer sellPricePerKg;
-    private Boolean canSell;
     private Integer growingTime;
-    private Boolean canFeedAnimals;
-    private Integer protectionCost;
-    private Integer kgPerH;
+    private Integer protectionCostPerH;
+    private String seedsFromHarvest;
+    private String yieldFromHarvest;
+    private Integer givesKgPerH;
     private Integer harvestCost;
 
-    public Crop(String name, Integer seedsPrice, Integer sellPricePerKg, Boolean canSell, Integer growingTime, Integer canBePlantedStartedIn, Integer mustBePlantedBefore, Boolean canUseSeeds, Boolean canFeedAnimals, Integer protectionCost, Integer kgPerH, Integer harvestCost) {
+    public Crop(String name, Integer growingTime, Integer protectionCostPerH, String seedsFromHarvest, String yieldFromHarvest, Integer givesKgPerH, Integer harvestCost) {
         this.name = name;
         this.age = 0;
-        this.sellPricePerKg = sellPricePerKg;
-        this.canSell = canSell;
         this.growingTime = growingTime;
-        this.canFeedAnimals = canFeedAnimals;
-        this.protectionCost = protectionCost;
-        this.kgPerH = kgPerH;
+        this.protectionCostPerH = protectionCostPerH;
+        this.seedsFromHarvest = seedsFromHarvest;
+        this.yieldFromHarvest = yieldFromHarvest;
+        this.givesKgPerH = givesKgPerH;
         this.harvestCost = harvestCost;
-
     }
 
-
-    public void plantCrop(Farm farm, Player player) {
-           setAge(age+1);
-    }
-
-    public void harvestCrop(Farm farm, Player player) {
+    public void harvestCrop(Player player) {
         if (player.getCash() < harvestCost) {
-            System.out.println("Brak wystarczających funduszy.");
-        } else if (growingTime>age) {
-            System.out.println("Za wcześnie na zbiory. Poczekaj jeszcze " + (growingTime-age) + " tygodni.");
+            System.out.println("\nBrak wystarczających funduszy.\n");
+        } else if (growingTime > age) {
+            System.out.println("\nZa wcześnie na zbiory. Poczekaj jeszcze " + (growingTime - age) + " tygodni.\n");
+        } else if ((player.getFarm().canHoldStocks() - player.getFarm().nowHoldsStocks()) < givesKgPerH) {
+            System.out.println("\nMasz za mało miejsca na magazynowanie zbiorów.\n");
+        } else {
+            player.getFarm().addStocks(this);
+            player.setCash(player.getCash() - harvestCost);
+            player.getFarm().getCrops().remove(this);
+            System.out.println("Żniwa zostały zebrane.");
         }
     }
 
 
     @Override
     public String toString() {
-        return "Roślina" +
-                "nazwa: '" + name + '\'' +
-                ", wiek: " + age +
-                ", cena za kg: " + sellPricePerKg +
-                ", można już sprzedać: " + canSell +
-                ", rośnie przez: " + growingTime +
-                ", można tym karmić zwierzęta: " + canFeedAnimals +
-                ", koszt pestycydów: " + protectionCost +
-                ", ton na hektar: " + kgPerH +
-                ", koszt zebrania plonów: " + harvestCost;
+        return name +
+                ":\nwiek/rośnie przez: " + age +
+                "/" + growingTime +
+                " tyg," +
+                (age >= growingTime ? " <- gotowe do zbioru ✔" : "") +
+                "\nkoszt pestycydów: " + protectionCostPerH +
+                "/tydzień, \nsurowca/h: " + givesKgPerH +
+                " kg, \nkoszt zebrania plonów: " + harvestCost + " zł\n";
     }
 
     //getters
+
+
     public String getName() {
         return name;
     }
@@ -62,30 +61,24 @@ public class Crop {
         return age;
     }
 
-
-    public Integer getSellPricePerKg() {
-        return sellPricePerKg;
-    }
-
-    public Boolean getCanSell() {
-        return canSell;
-    }
-
     public Integer getGrowingTime() {
         return growingTime;
     }
 
-
-    public Boolean getCanFeedAnimals() {
-        return canFeedAnimals;
+    public Integer getProtectionCostPerH() {
+        return protectionCostPerH;
     }
 
-    public Integer getProtectionCost() {
-        return protectionCost;
+    public String getSeedsFromHarvest() {
+        return seedsFromHarvest;
     }
 
-    public Integer getKgPerH() {
-        return kgPerH;
+    public String getYieldFromHarvest() {
+        return yieldFromHarvest;
+    }
+
+    public Integer getGivesKgPerH() {
+        return givesKgPerH;
     }
 
     public Integer getHarvestCost() {
@@ -93,6 +86,8 @@ public class Crop {
     }
 
     //setters
+
+
     public void setName(String name) {
         this.name = name;
     }
@@ -101,32 +96,27 @@ public class Crop {
         this.age = age;
     }
 
-    public void setSellPricePerKg(Integer sellPricePerKg) {
-        this.sellPricePerKg = sellPricePerKg;
-    }
-
-    public void setCanSell(Boolean canSell) {
-        this.canSell = canSell;
-    }
-
     public void setGrowingTime(Integer growingTime) {
         this.growingTime = growingTime;
     }
 
-    public void setCanFeedAnimals(Boolean canFeedAnimals) {
-        this.canFeedAnimals = canFeedAnimals;
+    public void setProtectionCostPerH(Integer protectionCostPerH) {
+        this.protectionCostPerH = protectionCostPerH;
     }
 
-    public void setProtectionCost(Integer protectionCost) {
-        this.protectionCost = protectionCost;
+    public void setSeedsFromHarvest(String seedsFromHarvest) {
+        this.seedsFromHarvest = seedsFromHarvest;
     }
 
-    public void setKgPerH(Integer kgPerH) {
-        this.kgPerH = kgPerH;
+    public void setYieldFromHarvest(String yieldFromHarvest) {
+        this.yieldFromHarvest = yieldFromHarvest;
+    }
+
+    public void setGivesKgPerH(Integer givesKgPerH) {
+        this.givesKgPerH = givesKgPerH;
     }
 
     public void setHarvestCost(Integer harvestCost) {
         this.harvestCost = harvestCost;
     }
-
 }
