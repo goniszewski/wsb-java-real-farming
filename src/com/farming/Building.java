@@ -9,16 +9,6 @@ public class Building {
     private Integer canHoldStocks;
     private Integer price;
 
-    public void buyBuilding(Player player, Farm farm) {
-        if (player.getCash() > this.getPrice()) {
-            farm.AddBuilding(this);
-            player.setCash(player.getCash() - this.getPrice());
-            System.out.println("Zakupiono budynek!");
-        } else {
-            System.out.println("Niewystarczająca ilość funduszy.");
-        }
-    }
-
     public Building(String type, Integer canHoldAnimals, Integer canHoldStocks, Integer price) {
         this.type = type;
         this.canHoldAnimals = canHoldAnimals;
@@ -28,11 +18,10 @@ public class Building {
 
     @Override
     public String toString() {
-        return "Budynek" +
-                "rodzaj: '" + type + '\'' +
-                ", nada się na zwierzęta: " + (canHoldAnimals>0) +
-                ", nada się na ziarna/plony: " + (canHoldStocks >0) +
-                ", cena: " + price;
+        return type +
+                ",\n może przechowywać zwierząt: " + canHoldAnimals + " szt."+
+                ",\n może przechowywać zbiorów: " + canHoldStocks/1000 + " ton" +
+                ",\n cena zakupu: " + price + " zł\n";
     }
 
     public String getType() {

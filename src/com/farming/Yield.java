@@ -15,9 +15,18 @@ public class Yield {
         this.quantityInKg = quantityInKg;
     }
 
-    public int feedAnimal(ArrayList<Animal> animals){
+    @Override
+    public String toString() {
+        return name +
+                ", \nilość na stanie: " + quantityInKg + " kg" +
+                ", \ncena sprzedaży: " + sellPricePerKg + " zł" +
+                ", \nmożna karmić zwierzęta: " + (canFeedAnimals ? "tak" : "nie") +
+                "\n";
+    }
+
+    public int feedAnimal(ArrayList<Animal> animals) {
         int eated = 0;
-        for (Animal animal:animals){
+        for (Animal animal : animals) {
             eated += animal.getEats();
         }
         quantityInKg -= eated;
@@ -41,6 +50,7 @@ public class Yield {
         return quantityInKg;
     }
 
+
     //setters
     public void setName(String name) {
         this.name = name;
@@ -57,5 +67,6 @@ public class Yield {
     public void setQuantityInKg(Integer quantityInKg) {
         this.quantityInKg = quantityInKg;
     }
+
 }
 

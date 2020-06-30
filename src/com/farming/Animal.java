@@ -1,64 +1,72 @@
 package com.farming;
 
-import java.util.Arrays;
-
 public class Animal {
 
     private String species;
-    private Integer age;
-    private Integer weight;
-    private Integer weightGain;
+    private Integer age = 1;
+    private Integer weight = 0;
+    private Integer eatsWeightWorthPerWeek = 0;
+    private Integer weightGain = getWeightGain();
     private Integer matureInWeeks;
-    private Integer eats;
-    private Boolean canReproduce;
+    private Integer eats = getEats();
+    private Boolean canReproduce = (age == matureInWeeks);
     private Integer reproductionChance;
     private Boolean canSell;
-    private Integer buyPrice;
-    private Integer sellPrice;
-    private Object[] givesPerWeek;
+    private Integer buyPricePerKg;
+    private Integer buyPriceMultiplier = 5;
+    private Integer sellPricePerKg;
+    private Resource givesPerWeek;
 
-    public Animal(String species, Integer weight, Integer weightGain, Integer matureInWeeks, Integer eats, Integer reproductionChance, Boolean canSell, Integer buyPrice, Integer sellPrice, Object[] givesPerWeek) {
+
+    public Animal(String species, Integer weight, Integer eatsWeightWorthPerWeek, Integer matureInWeeks, Integer reproductionChance, Boolean canSell, Integer buyPricePerKg, Integer sellPricePerKg, Resource givesPerWeek) {
         this.species = species;
-        this.age = 1;
         this.weight = weight;
-        this.weightGain = weightGain;
+        this.eatsWeightWorthPerWeek = eatsWeightWorthPerWeek;
         this.matureInWeeks = matureInWeeks;
-        this.eats = eats;
         this.reproductionChance = reproductionChance;
         this.canSell = canSell;
-        this.buyPrice = buyPrice;
-        this.sellPrice = sellPrice;
+        this.buyPricePerKg = buyPricePerKg;
+        this.sellPricePerKg = sellPricePerKg;
         this.givesPerWeek = givesPerWeek;
     }
 
-    public void buyAnimal(Player player, Farm farm) {
-        if (player.getCash() >= buyPrice && farm.canAddAnimals() > 0) {
-            farm.addAnimal(this);
-            player.setCash(player.getCash() - buyPrice);
-            System.out.println("Kupiłeś 1x " + species);
-            System.out.println("Pozostało " + player.getCash() + " PLN.");
+    public void gainWeight() {
+        if (matureInWeeks > 1) {
+            weight += getWeightGain();
         }
+    }
+
+    public Integer getWeightGain() {
+        return (weight * eatsWeightWorthPerWeek / 100) + 1;
+    }
+
+    public Integer getEats() {
+        return (weight * eatsWeightWorthPerWeek) + 1;
     }
 
     @Override
     public String toString() {
-        return "Zwierzę" +
-                "gatunek: '" + species + '\'' +
-                ", wiek (w tyg.): " + age +
-                ", waga: " + weight +
-                ", wzrost kg/tydzień: " + weightGain +
-                ", dojrzewa w tyg.: " + matureInWeeks +
-                ", zjada: " + eats +
-                ", gotowość do rozrodu: " + canReproduce +
-                ", szansa na ciążę: " + reproductionChance +
-                ", można sprzedać: " + canSell +
-                ", cena zakupu: " + buyPrice +
-                ", cena sprzedaży: " + sellPrice +
-                ", zapewnia na tydzień: " + Arrays.toString(givesPerWeek) +
-                '}';
+        return species +
+                ", \nwiek /tyg: " + age +
+                ", \nwaga: " + weight + " kg" +
+                ", \nwzrost kg/tydzień: " + getWeightGain() +
+                ", \ndojrzewa w: " + matureInWeeks + " tyg." +
+                ", \nzjada /tyg: " + getEats() + " kg" +
+                ", \ngotowość do rozrodu: " + (canReproduce ? "tak" : "nie") +
+                ", \nszansa na ciążę: " + reproductionChance + "%" +
+                ", \nmożna sprzedać: " + (canSell ? "tak" : "jeszcze nie") +
+                ", \ncena zakupu /kg: " + buyPricePerKg + " zł (+ " + (buyPricePerKg * buyPriceMultiplier) + " zł opłat)" +
+                ", \ncena sprzedaży /kg: " + sellPricePerKg + " zł (" + (sellPricePerKg * weight) + " zł obecnie)" +
+                ", \nzapewnia na tydzień: " + givesPerWeek.name + "(" + givesPerWeek.quantity + " " + givesPerWeek.unitToDisplay + " * " + givesPerWeek.sellPriceByUnit + " zł)\n";
     }
 
+
     //Getters
+
+    public Integer getBuyPrice() {
+        return buyPricePerKg * weight * buyPriceMultiplier;
+    }
+
     public String getSpecies() {
         return species;
     }
@@ -71,17 +79,14 @@ public class Animal {
         return weight;
     }
 
-    public Integer getWeightGain() {
-        return weightGain;
+    public Integer getEatsWeightWorthPerWeek() {
+        return eatsWeightWorthPerWeek;
     }
 
     public Integer getMatureInWeeks() {
         return matureInWeeks;
     }
 
-    public Integer getEats() {
-        return eats;
-    }
 
     public Boolean getCanReproduce() {
         return canReproduce;
@@ -95,19 +100,21 @@ public class Animal {
         return canSell;
     }
 
-    public Integer getBuyPrice() {
-        return buyPrice;
+    public Integer getBuyPricePerKg() {
+        return buyPricePerKg * buyPriceMultiplier;
     }
 
-    public Integer getSellPrice() {
-        return sellPrice;
+    public Integer getSellPricePerKg() {
+        return sellPricePerKg;
     }
 
-    public Object[] getGivesPerWeek() {
+    public Resource getGivesPerWeek() {
         return givesPerWeek;
     }
 
     //Setters
+
+
     public void setSpecies(String species) {
         this.species = species;
     }
@@ -118,6 +125,10 @@ public class Animal {
 
     public void setWeight(Integer weight) {
         this.weight = weight;
+    }
+
+    public void setEatsWeightWorthPerWeek(Integer eatsWeightWorthPerWeek) {
+        this.eatsWeightWorthPerWeek = eatsWeightWorthPerWeek;
     }
 
     public void setWeightGain(Integer weightGain) {
@@ -144,17 +155,15 @@ public class Animal {
         this.canSell = canSell;
     }
 
-    public void setBuyPrice(Integer buyPrice) {
-        this.buyPrice = buyPrice;
+    public void setBuyPricePerKg(Integer buyPricePerKg) {
+        this.buyPricePerKg = buyPricePerKg;
     }
 
-    public void setSellPrice(Integer sellPrice) {
-        this.sellPrice = sellPrice;
+    public void setSellPricePerKg(Integer sellPricePerKg) {
+        this.sellPricePerKg = sellPricePerKg;
     }
 
-    public void setGivesPerWeek(Object[] givesPerWeek) {
+    public void setGivesPerWeek(Resource givesPerWeek) {
         this.givesPerWeek = givesPerWeek;
     }
-
-
 }

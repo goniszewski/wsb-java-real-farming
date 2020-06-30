@@ -30,7 +30,7 @@ public class Crop {
         } else if ((player.getFarm().canHoldStocks() - player.getFarm().nowHoldsStocks()) < givesKgPerH) {
             System.out.println("\nMasz za mało miejsca na magazynowanie zbiorów.\n");
         } else {
-            player.getFarm().addStocks(this);
+            player.getFarm().addStocks(this,player);
             player.setCash(player.getCash() - harvestCost);
             player.getFarm().getCrops().remove(this);
             System.out.println("Żniwa zostały zebrane.");

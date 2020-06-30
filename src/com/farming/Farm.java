@@ -10,6 +10,7 @@ public class Farm {
     private ArrayList<Animal> animals = new ArrayList<Animal>();
     private ArrayList<Seeds> seeds = new ArrayList<Seeds>();
     private ArrayList<Yield> yields = new ArrayList<Yield>();
+    private ArrayList<Resource> resources = new ArrayList<Resource>();
     private Integer fieldsInHectares = 0;
     private Integer usedHectares = 0;
     private final Integer cashPerHectare = 50000;
@@ -89,24 +90,24 @@ public class Farm {
     }
 
     public void buyField(Player player, Integer howManyH) {
-        if (fieldsInHectares+howManyH > 25) {
+        if (fieldsInHectares + howManyH > 25) {
             System.out.println("Nie możesz mieć więcej niż 25 ha ziemi.");
         } else if (player.getCash() > cashPerHectare) {
             fieldsInHectares += howManyH;
-            player.setCash(player.getCash() - (cashPerHectare*howManyH));
-            System.out.println("Kupiono "+howManyH+" hektar(ów) ziemi!");
+            player.setCash(player.getCash() - (cashPerHectare * howManyH));
+            System.out.println("Kupiono " + howManyH + " hektar(ów) ziemi!");
         } else {
             System.out.println("Brak wystarczających funduszy.");
         }
     }
 
     public void sellField(Player player, Integer howManyH) {
-        if (displayFreeHectares()-howManyH <0) {
+        if (displayFreeHectares() - howManyH < 0) {
             System.out.println("Nie można sprzedać większej ilości ziemi niż jest obecnie wolne od upraw.");
         } else {
             fieldsInHectares -= howManyH;
-            player.setCash(player.getCash() + (cashPerHectare*howManyH));
-            System.out.println("Kupiono "+howManyH+" hektar(ów) ziemi!");
+            player.setCash(player.getCash() + (cashPerHectare * howManyH));
+            System.out.println("Kupiono " + howManyH + " hektar(ów) ziemi!");
         }
     }
 
@@ -155,35 +156,64 @@ public class Farm {
             player.setCash(player.getCash() - (seeds.getBuyPricePerKg() * seeds.getNeedsKgPerH()));
         }
     }
+
     public void sellSeeds(Player player, Integer index, Integer quantityInKg) {
-        if (player.getFarm().getSeeds().get(index).getQuantityInKg()<quantityInKg) {
+        if (player.getFarm().getSeeds().get(index).getQuantityInKg() < quantityInKg) {
             System.out.println("Brak wystarczających ilości na stanie.");
         } else {
-            player.getFarm().getSeeds().get(index).setQuantityInKg(player.getFarm().getSeeds().get(index).getQuantityInKg()-quantityInKg);
+            player.getFarm().getSeeds().get(index).setQuantityInKg(player.getFarm().getSeeds().get(index).getQuantityInKg() - quantityInKg);
             player.setCash(player.getCash() + (player.getFarm().getSeeds().get(index).getSellPricePerKg() * quantityInKg));
         }
     }
 
     public void sellYields(Player player, Integer index, Integer quantityInKg) {
-        if (player.getFarm().getYields().get(index).getQuantityInKg()<quantityInKg) {
+        if (player.getFarm().getYields().get(index).getQuantityInKg() < quantityInKg) {
             System.out.println("Brak wystarczających ilości na stanie.");
         } else {
-            player.getFarm().getYields().get(index).setQuantityInKg(player.getFarm().getYields().get(index).getQuantityInKg()-quantityInKg);
+            player.getFarm().getYields().get(index).setQuantityInKg(player.getFarm().getYields().get(index).getQuantityInKg() - quantityInKg);
             player.setCash(player.getCash() + (player.getFarm().getYields().get(index).getSellPricePerKg() * quantityInKg));
         }
     }
 
-    public void sellAnimal(Player player, Integer index){
-        if (player.getFarm().getAnimals().get(index) == null){
+    public void sellAnimal(Player player, Integer index) {
+        if (player.getFarm().getAnimals().get(index) == null) {
             System.out.println("Nie posiadasz takiego zwierzęcia.");
-        } else if (player.getFarm().getAnimals().get(index).getMatureInWeeks()>0){
-            System.out.println("Zwierzę jest jeszcze za młode, poczekaj "+player.getFarm().getAnimals().get(index).getMatureInWeeks()+" tygodni.");
+        } else if (player.getFarm().getAnimals().get(index).getMatureInWeeks() > 0) {
+            System.out.println("Zwierzę jest jeszcze za młode, poczekaj " + player.getFarm().getAnimals().get(index).getMatureInWeeks() + " tygodni.");
         } else {
-            player.setCash(player.getCash()+player.getFarm().getAnimals().get(index).getSellPrice());
-            player.getFarm().getAnimals().get(index).
+            player.setCash(player.getCash() + player.getFarm().getAnimals().get(index).getSellPricePerKg());
+            animals.remove(index);
         }
     }
 
+    public void buyBuilding(Player player, Building building) {
+        if (player.getCash() < building.getPrice()) {
+            System.out.println("Brak wystarczających funduszy na koncie");
+        } else {
+            player.getFarm().getBuildings().add(building);
+            player.setCash(player.getCash() - building.getPrice());
+        }
+    }
+
+    public void buyAnimal(Player player, Animal animal) {
+        if (player.getCash() < (animal.getBuyPricePerKg() * animal.getWeight())) {
+            System.out.println("Brak wystarczających funduszy na koncie.");
+        } else if ((canHoldAnimals() - nowHoldsAnimals()) < 1) {
+            System.out.println("Brak wystrarczającej ilości miejsca.");
+        } else {
+            addAnimal(animal);
+            player.setCash(player.getCash() - (animal.getBuyPricePerKg() * animal.getWeight()));
+        }
+    }
+
+    public void sellResources(Player player) {
+        int cashToAdd = 0;
+        for (Resource resource : resources) {
+            cashToAdd += (resource.sellPriceByUnit * resource.quantity);
+            resources.remove(resource);
+        }
+        player.setCash(player.getCash() + cashToAdd);
+    }
     //getters
 
     public Integer getPrice() {
@@ -255,21 +285,41 @@ public class Farm {
         this.animals.add(animal);
     }
 
-    public void addStocks(Crop crop) {
+    public void addStocks(Crop crop, Player player) {
+        boolean foundIt = false;
         if (crop.getSeedsFromHarvest() != null) {
             for (Seeds seeds : seeds) {
                 if (seeds.getName().equals(crop.getSeedsFromHarvest())) {
                     seeds.setQuantityInKg(seeds.getQuantityInKg() + crop.getGivesKgPerH());
+                    foundIt=true;
                 }
             }
-
-        } else if (crop.getYieldFromHarvest() != null) {
+        } else {
             for (Yield yield : yields) {
                 if (yield.getName().equals(crop.getYieldFromHarvest())) {
                     yield.setQuantityInKg(yield.getQuantityInKg() + crop.getGivesKgPerH());
+                    foundIt=true;
                 }
             }
+        }
 
+        if (!foundIt){
+            if (crop.getYieldFromHarvest() != null) {
+                for (Yield yield: player.getGame().getAvailableYields()){
+                    if (yield.getName().equals(crop.getYieldFromHarvest())) {
+                        yields.add(yield);
+                        addStocks(crop,player);
+                    }
+                }
+            }
+            if (crop.getSeedsFromHarvest() != null) {
+                for (Seeds seed: player.getGame().getAvailableSeeds()){
+                    if (seed.getName().equals(crop.getSeedsFromHarvest())) {
+                        seeds.add(seed);
+                        addStocks(crop,player);
+                    }
+                }
+            }
         }
     }
 
@@ -317,6 +367,32 @@ public class Farm {
         }
     }
 
+    public void addYield(Player player, String name, Integer givesKgPerH) {
+        boolean foundIt = false;
+
+        for (Yield yield : yields) {
+            if (yield.getName().equals(name)) {
+                yield.setQuantityInKg(yield.getQuantityInKg() + givesKgPerH);
+                foundIt = true;
+            }
+        }
+        if (!foundIt) {
+            for (Yield yield : player.getGame().getAvailableYields()) {
+                if (yield.getName().equals(name)) {
+                    player.getFarm().yields.add(yield);
+                }
+            }
+        }
+
+    }
+
+    public Integer availableFood() {
+        Integer food = 0;
+        for (Yield yield : yields) {
+            food += yield.getQuantityInKg();
+        }
+        return food;
+    }
 
 }
 

@@ -11,4 +11,4 @@ public class Main {
     }
 }
 
-// 1 dt = 0.1 t
+// by https://github.com/goniszewski

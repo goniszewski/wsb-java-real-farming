@@ -6,14 +6,18 @@ import java.util.Scanner;
 
 public class Game {
     private Integer week = 0;
+    private Integer year = 2020;
     private Player player;
     private ArrayList<Farm> availableFarms = new ArrayList<>();
     private ArrayList<Building> availableBuildings = new ArrayList<>();
     private ArrayList<Seeds> availableSeeds = new ArrayList<>();
     private ArrayList<Crop> availableCrops = new ArrayList<>();
     private ArrayList<Yield> availableYields = new ArrayList<>();
+    private ArrayList<Resource> availableResources = new ArrayList<>();
     private ArrayList<Animal> availableAnimals = new ArrayList<>();
     private Integer harvestLeftovers = 0;
+    private Integer defaultFoodToBuyCosts = 10;
+    private Integer cashFromResources = 0;
 
     private String menu = "";
     private String choice = "";
@@ -21,6 +25,7 @@ public class Game {
 
 
     public Game(Player player) {
+        this.year = 0;
         this.week = 0;
         this.player = player;
     }
@@ -28,6 +33,14 @@ public class Game {
     //getters
     public Integer getWeek() {
         return week;
+    }
+
+    public Integer getTotalWeeks() {
+        return week + (52 * year);
+    }
+
+    public Integer displayYear() {
+        return 2020 + year;
     }
 
     public String getChoice() {
@@ -42,7 +55,57 @@ public class Game {
         return menu;
     }
 
+    public ArrayList<Building> getAvailableBuildings() {
+        return availableBuildings;
+    }
+
+    public ArrayList<Seeds> getAvailableSeeds() {
+        return availableSeeds;
+    }
+
+    public ArrayList<Crop> getAvailableCrops() {
+        return availableCrops;
+    }
+
+    public ArrayList<Yield> getAvailableYields() {
+        return availableYields;
+    }
+
+    public ArrayList<Resource> getAvailableResources() {
+        return availableResources;
+    }
+
+    public ArrayList<Animal> getAvailableAnimals() {
+        return availableAnimals;
+    }
+
     //setters
+
+
+    public void setAvailableFarms(ArrayList<Farm> availableFarms) {
+        this.availableFarms = availableFarms;
+    }
+
+    public void setAvailableBuildings(ArrayList<Building> availableBuildings) {
+        this.availableBuildings = availableBuildings;
+    }
+
+    public void setAvailableSeeds(ArrayList<Seeds> availableSeeds) {
+        this.availableSeeds = availableSeeds;
+    }
+
+    public void setAvailableCrops(ArrayList<Crop> availableCrops) {
+        this.availableCrops = availableCrops;
+    }
+
+    public void setAvailableYields(ArrayList<Yield> availableYields) {
+        this.availableYields = availableYields;
+    }
+
+    public void setAvailableAnimals(ArrayList<Animal> availableAnimals) {
+        this.availableAnimals = availableAnimals;
+    }
+
     public void setWeek(Integer week) {
         this.week = week;
     }
@@ -69,18 +132,71 @@ public class Game {
         return weeklyExpenses;
     }
 
+    public void gameOver() {
+        System.out.println("\n\n" + "💀☠".repeat(20));
+        System.out.println("\n\n\nGra zakończona porażką!\n\n");
+        System.out.println("Naciśnij 'N' aby zacząć nową grę.\n");
+        System.out.println("💀☠".repeat(20) + "\n\n");
+
+        String selected = "";
+        Scanner scanner = new Scanner(System.in);
+        selected = scanner.nextLine();
+        if ((selected.equals("n")) || selected.equals("N")) {
+            choiceSelector("n");
+        } else {
+            gameOver();
+        }
+    }
 
     public void nextWeek() {
+        ArrayList<String> wasUpdated = new ArrayList<>();
+        Integer playersCashBefore = player.getCash();
+        if (week == 53) {
+            year += 1;
+            week = 0;
+        }
         setWeek(week + 1);
         player.setCash(player.getCash() - getWeeklyExpenses());
-        Integer foodEaten = 0;
-        for (Animal animal : player.getFarm().getAnimals()) {
-            foodEaten += animal.getEats();
-            animal.setAge(animal.getAge() + 1);
+        if (player.getCash() <= 0) {
+            gameOver();
         }
+        player.getFarm().sellResources(player);
+        cashFromResources = player.getCash() - playersCashBefore;
         for (Crop crop : player.getFarm().getCrops()) {
-            crop.setAge(crop.getAge() + 1);
+            if (!wasUpdated.contains(crop.getName())) {
+                crop.setAge(crop.getAge() + 1);
+                wasUpdated.add(crop.getName());
+            }
         }
+        Integer foodEaten = 0;
+        Integer foodBought = 0;
+        for (Animal animal : player.getFarm().getAnimals()) {
+            if (!wasUpdated.contains(animal.getSpecies())) {
+                foodEaten += animal.getEats();
+                animal.gainWeight();
+                animal.setAge(animal.getAge() + 1);
+                wasUpdated.add(animal.getSpecies());
+            }
+
+        }
+
+        for (Yield yield : player.getFarm().getYields()) {
+            if (yield.getCanFeedAnimals()) {
+                if (yield.getQuantityInKg() >= foodEaten) {
+                    yield.setQuantityInKg(yield.getQuantityInKg() - foodEaten);
+                } else if (yield.getQuantityInKg() < foodEaten) {
+                    foodEaten -= yield.getQuantityInKg();
+                    yield.setQuantityInKg(0);
+                }
+            }
+        }
+        if (foodEaten > 0) {
+            foodBought = foodEaten * defaultFoodToBuyCosts;
+        }
+        player.setCash(player.getCash() - foodBought);
+        System.out.println("\n\n" + "-".repeat(40));
+        System.out.println("\n\n\nZ powodu braku zapasów żywności w tym tygodniu\nwydajesz " + foodBought + " zł na zakup brakującej jej ilości.\n");
+
     }
 
     public void startGame() {
@@ -94,15 +210,14 @@ public class Game {
         availableCrops = new ArrayList<>();
         availableAnimals = new ArrayList<>();
 
+        initiateGame();
+
         for (int i = 0; i < 5; i++) {
             this.availableFarms.add(generateFarm(randInt(0, 1), randInt(0, 1)));
         }
         for (int i = 0; i < 5; i++) {
             this.availableBuildings.add(generateBuilding("obora"));
             this.availableBuildings.add(generateBuilding("stodoła"));
-        }
-        if (!wasInitiated) {
-            initiateGame();
         }
     }
 
@@ -115,8 +230,9 @@ public class Game {
     }
 
     public void showMenu() {
-        System.out.println("\n\n" + "-".repeat(20));
-        System.out.println("Tydzień " + this.week + ", stan konta: " + this.player.getCash() + " zł, wydatki: " + getWeeklyExpenses() + " zł/tyg.\n");
+        System.out.println("\n\n" + "-".repeat(40));
+        System.out.println("Tydzień " + this.week + " [" + displayYear() + "], stan konta: " + this.player.getCash() +
+                " zł,\nprzychód/wydatki: " + cashFromResources + "/" + getWeeklyExpenses() + " zł/tyg.\n");
         if (player.getFarm() != null) {
             System.out.println("1. Kolejny tydzień");
         } else {
@@ -128,6 +244,7 @@ public class Game {
             System.out.println("4. Pokaż posiadane nasiona");
             System.out.println("5. Pokaż posiadane zbiory");
             System.out.println("6. Pokaż posiadane zwierzęta");
+            System.out.println("\ni. Informacje o grze 🕹");
             System.out.println("\nN. Zakończ grę i rozpocznij nową");
         } else {
             System.out.println("2. Kup farmę");
@@ -135,7 +252,7 @@ public class Game {
             System.out.println("Aby kupić zwierzęta potrzebujesz farmy");
             System.out.println("\n'N' -> Zakończ grę i rozpocznij nową 🧨");
         }
-        System.out.println("-".repeat(20) + "\n");
+        System.out.println("-".repeat(40) + "\n");
         userInput("main");
     }
 
@@ -158,6 +275,7 @@ public class Game {
                             System.out.println("\nInformacje o farmie:\n");
                             System.out.println(player.getFarm().toString());
                             System.out.println("\nNaciśnij 'L' aby przejść do zakupu ziemi.");
+                            System.out.println("\nNaciśnij 'B' aby przejść do zakupu budynków.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
                             userInput("main");
                         } else {
@@ -177,7 +295,7 @@ public class Game {
                             try {
                                 availableFarms.get((Integer.parseInt(selected) - 1)).buyFarm(player);
                                 showMenu();
-                            } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                                 choiceSelector(selected);
                             }
                         }
@@ -192,7 +310,7 @@ public class Game {
                             userInput("main");
                         } else {
                             int cropNo = 1;
-                            System.out.println("\n\n" + "-".repeat(20));
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nLista upraw:\n");
                             for (Crop crop : player.getFarm().getCrops()) {
                                 System.out.println(cropNo + ". " + ((crop == null) ? "Brak upraw w posiadaniu." : crop.toString()));
@@ -207,9 +325,9 @@ public class Game {
                                 choiceSelector("menu");
                             }
                             try {
-                                player.getFarm().getCrops().get((Integer.parseInt(selected)-1)).harvestCrop(player);
+                                player.getFarm().getCrops().get((Integer.parseInt(selected) - 1)).harvestCrop(player);
                                 choiceSelector("3");
-                            } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                                 choiceSelector(selected);
                             }
                         }
@@ -220,13 +338,13 @@ public class Game {
                     case "main":
                         int seedsNo = 1;
                         if (player.getFarm().getSeeds().isEmpty()) {
-                            System.out.println("\n\n" + "-".repeat(20));
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nObecnie nie posiadasz żadnych nasion.\n");
                             System.out.println("\nNaciśnij 'S' aby przejść do zakupu nasion.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
                             userInput("main");
                         } else {
-                            System.out.println("\n\n" + "-".repeat(20));
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nWykaz nasion na stanie:\n");
                             for (Seeds seeds : player.getFarm().getSeeds()) {
                                 System.out.println(seedsNo + ". " + ((seeds == null) ? "Brak nasion w posiadaniu." : seeds.toString()));
@@ -241,9 +359,9 @@ public class Game {
                                 choiceSelector("menu");
                             }
                             try {
-                                player.getFarm().sellSeeds(player,(Integer.parseInt(selected)-1),1000);
+                                player.getFarm().sellSeeds(player, (Integer.parseInt(selected) - 1), 1000);
                                 choiceSelector("4");
-                            } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                                 choiceSelector(selected);
                             }
                         }
@@ -253,12 +371,12 @@ public class Game {
                     case "main":
                         int yieldNo = 1;
                         if (player.getFarm().getYields().isEmpty()) {
-                            System.out.println("\n\n" + "-".repeat(20));
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nObecnie nie posiadasz żadnych zbiorów.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.");
                             userInput("main");
                         } else {
-                            System.out.println("\n\n" + "-".repeat(20));
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nWykaz zbiorów:\n");
                             for (Yield yield : player.getFarm().getYields()) {
                                 System.out.println(yieldNo + ". " + ((yield == null) ? "Brak zbiorów w posiadaniu." : yield.toString()));
@@ -272,9 +390,9 @@ public class Game {
                                 choiceSelector("menu");
                             }
                             try {
-                                player.getFarm().sellYields(player,Integer.parseInt(selected)-1,1000);
-                                choiceSelector("4");
-                            } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                                player.getFarm().sellYields(player, Integer.parseInt(selected) - 1, 1000);
+                                choiceSelector("5");
+                            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                                 choiceSelector(selected);
                             }
                         }
@@ -293,8 +411,8 @@ public class Game {
                                 System.out.println(animalNo + ". " + ((animal == null) ? "Brak zwierząt w posiadaniu." : animal.toString()));
                                 animalNo++;
                             }
-
-
+                            System.out.println("\nNaciśnij 'A' aby przejść do zakupu zwierząt.");
+                            System.out.println("\nSprzedaj dane zwierzę albo naciśnij '0' aby wrócić do głównego menu.\n\n");
                             String selected = "";
                             Scanner scanner = new Scanner(System.in);
                             System.out.println("\nSprzedaj dane zwierzę albo naciśnij '0' aby wrócić do głównego menu.\n\n");
@@ -303,17 +421,11 @@ public class Game {
                                 choiceSelector("menu");
                             }
                             try {
-                                player.getFarm().sellAnimal
+                                player.getFarm().sellAnimal(player, (Integer.parseInt(selected) - 1));
                                 choiceSelector("4");
-                            } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                                 choiceSelector(selected);
                             }
-
-
-
-                            System.out.println("\nNaciśnij 'A' aby przejść do zakupu zwierząt.");
-                            System.out.println("\nSprzedaj dane zwierzę albo naciśnij '0' aby wrócić do głównego menu.\n\n");
-                            userInput("sellAnimal");
                         }
                 }
             case "7":
@@ -331,7 +443,7 @@ public class Game {
                 showMenu();
             case "s":
             case "S":
-                System.out.println("\n\n" + "-".repeat(20));
+                System.out.println("\n\n" + "-".repeat(40));
                 System.out.println("W budynkach jest miejsca na: " + (player.getFarm().canHoldStocks() - player.getFarm().nowHoldsStocks()) + " kg, tydzień: " + week + ", PLN: " + this.player.getCash() + "\n");
                 if (!availableSeeds.isEmpty()) {
                     int seedsNo = 1;
@@ -352,7 +464,7 @@ public class Game {
                         try {
                             player.getFarm().buySeeds(player, availableSeeds.get((Integer.parseInt(selected) - 1)));
                             choiceSelector("s");
-                        } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                             choiceSelector(selected);
                         }
                     }
@@ -361,19 +473,52 @@ public class Game {
                     System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
                     setMenu("main");
                 }
-                System.out.println("-".repeat(20) + "\n");
+                System.out.println("-".repeat(40) + "\n");
             case "a":
             case "A":
-                setMenu("buyAnimal");
-                showMenu();
+                System.out.println("\n\n" + "-".repeat(40));
+                System.out.println("W budynkach jest miejsca na: " + (player.getFarm().canHoldAnimals() - player.getFarm().nowHoldsAnimals()) + " zwierząt, tydzień: " + week + ", PLN: " + this.player.getCash() + "\n");
+                if (!availableAnimals.isEmpty()) {
+                    int animalNo = 1;
+                    for (Animal animal : availableAnimals) {
+                        System.out.println(animalNo + ". " + animal.getSpecies() + " (cena zakupu/sprzedaży za kg: " + animal.getBuyPricePerKg() + "/" + animal.getSellPricePerKg() + " zł, pożywienia na tydzień: " + animal.getEats() + " kg) - cena: " + animal.getBuyPrice() + " zł.");
+                        animalNo++;
+                    }
+                    System.out.println("\nWybierz młode do zakupu albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                    if (player.getFarm() == null) {
+                        showMenu();
+                    } else {
+                        String selected = "";
+                        Scanner scanner = new Scanner(System.in);
+                        selected = scanner.nextLine();
+                        if (selected.equals("0")) {
+                            choiceSelector("menu");
+                        }
+                        try {
+                            player.getFarm().buyAnimal(player, availableAnimals.get((Integer.parseInt(selected) - 1)));
+                            choiceSelector("a");
+                        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+                            choiceSelector(selected);
+                        }
+                    }
+                } else {
+                    System.out.println("\nOho, ktoś tutaj nie zainicjował instancji!");
+                    System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                    setMenu("main");
+                }
+                System.out.println("-".repeat(40) + "\n");
             case "p":
             case "P":
-                System.out.println("\n\n" + "-".repeat(20));
+                System.out.println("\n\n" + "-".repeat(40));
                 System.out.println("Ilość wolnych pól: " + player.getFarm().displayFreeHectares() + " ha, tydzień: " + week + ", stan konta: " + this.player.getCash() + " zł\n");
                 if (!availableCrops.isEmpty()) {
                     int seedsNo = 1;
                     for (Seeds seeds : player.getFarm().getSeeds()) {
-                        System.out.println(seedsNo + ". " + seeds.getName() + " ( sadzić po/przed: " + seeds.getCanBePlantedStartedIn() + "/" + seeds.getMustBePlantedBefore() + " tyg, koszt przygotowania ziemi: " + seeds.getGroundPreparingCost() + " zł)");
+                        if (seeds.getQuantityInKg() < seeds.getNeedsKgPerH()) {
+                            System.out.println("-- " + seeds.getName() + " ( za mała ilość na stanie, brakuje " + (seeds.getNeedsKgPerH() - seeds.getQuantityInKg()) + " kg )");
+                        } else {
+                            System.out.println(seedsNo + ". " + seeds.getName() + " (sadzić po/przed: " + seeds.getCanBePlantedStartedIn() + "/" + seeds.getMustBePlantedBefore() + " tyg, koszt przygotowania ziemi: " + seeds.getGroundPreparingCost() + " zł)");
+                        }
                         seedsNo++;
                     }
                     System.out.println("\nWybierz nasiona do zasadzenia albo naciśnij '0' aby wrócić do głównego menu.");
@@ -385,8 +530,8 @@ public class Game {
                     }
                     try {
                         player.getFarm().getSeeds().get((Integer.parseInt(selected) - 1)).plantSeeds(player);
-                        userInput("p");
-                    } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                        choiceSelector("p");
+                    } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                         choiceSelector(selected);
                     }
                 } else if (player.getFarm() == null) {
@@ -397,10 +542,10 @@ public class Game {
                     setMenu("main");
                 }
 
-                System.out.println("-".repeat(20) + "\n");
+                System.out.println("-".repeat(40) + "\n");
             case "h":
             case "H":
-              choiceSelector("3");
+                choiceSelector("3");
             case "l":
             case "L":
                 if (player.getFarm() == null) {
@@ -417,11 +562,59 @@ public class Game {
                     try {
                         player.getFarm().buyField(player, Integer.parseInt(selected));
                         choiceSelector("2");
-                    } catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                    } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
                         choiceSelector(selected);
                     }
                 }
+            case "b":
+            case "B":
+                System.out.println("\n\n" + "-".repeat(40));
+                System.out.println("Łącznie miejsca na (w użyciu/ogólnie): " + player.getFarm().nowHoldsAnimals() + "/" + player.getFarm().canHoldAnimals() + " (zwierząt) oraz " + player.getFarm().nowHoldsStocks() / 1000 + "/" + player.getFarm().canHoldStocks() / 1000 + " ton (ziaren oraz zbiorów), tydzień: " + week + ", stan konta: " + this.player.getCash() + " zł\n");
+                if (!availableBuildings.isEmpty()) {
+                    int buildingNo = 1;
+                    for (Building building : availableBuildings) {
+                        System.out.println(buildingNo + ". " + building.toString());
+                        buildingNo++;
+                    }
+                    System.out.println("\nWybierz budynek do zakupu albo naciśnij '0' aby wrócić do głównego menu.");
+                    String selected = "";
+                    Scanner scanner = new Scanner(System.in);
+                    selected = scanner.nextLine();
+                    if (selected.equals("0")) {
+                        choiceSelector("menu");
+                    }
+                    try {
+                        player.getFarm().buyBuilding(player, availableBuildings.get((Integer.parseInt(selected) - 1)));
+                        choiceSelector("b");
+                    } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+                        choiceSelector(selected);
+                    }
+                } else if (player.getFarm() == null) {
+                    showMenu();
+                } else {
+                    System.out.println("\nOho, ktoś tutaj nie zainicjował instancji!");
+                    System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.");
+                    setMenu("main");
+                }
 
+                System.out.println("-".repeat(40) + "\n");
+            case "i":
+            case "I":
+                if (player.getFarm() != null) {
+                    System.out.println("\n\n" + "-".repeat(40));
+                    System.out.println("\n\nAutor:\nRobert Goniszewski\nGithub:\ngithub.com/goniszewski" +
+                            "\n\nPS W tej grze są cheaty (wpisz w dowolnym menu):" +
+                            "\n   * gimmegold  - wpisz ile chcesz mieć PLN," +
+                            "\n   * timetravel - przenieś się o X tygodni do przodu," +
+                            "\n\nUdanej zabawy!" + "\n\nNaciśnij '0' aby wrócić do głównego menu." +
+                            "\n\n\n" + "-".repeat(40) + "\n\n");
+                    String selected = "";
+                    Scanner scanner = new Scanner(System.in);
+                    selected = scanner.nextLine();
+                    if (selected.equals("0")) {
+                        choiceSelector("menu");
+                    }
+                }
 
                 // cheats
             case "timetravel":
@@ -448,6 +641,7 @@ public class Game {
                 System.out.println("Nieprawidłowa opcja, spróbuj jeszcze raz.");
                 showMenu();
         }
+
     }
 
     private static Integer randInt(Integer min, Integer max) {
@@ -486,30 +680,40 @@ public class Game {
 
     public void initiateGame() {
         // crops
-        Crop pszenica = new Crop("pszenica 🌾", 25, 50, "pszenica", null, 600, 4000);
-        Crop kukurydza = new Crop("kukurydza 🌽", 26, 70, "kukurydza", null, 800, 5000);
-        Crop rzepak = new Crop("rzepa 🌱", 22, 30, null, "rzepak", 5000, 5500);
+        Crop pszenica = new Crop("pszenica 🌾", 25, 50, "pszenica", null, 6000, 4000);
+        Crop kukurydza = new Crop("kukurydza 🌽", 26, 70, "kukurydza", null, 8000, 5000);
+        Crop rzepak = new Crop("rzepak 🌱", 22, 30, null, "rzepak", 5000, 5500);
         Crop burak = new Crop("burak pastewny 🌱", 30, 40, null, "burak pastewny", 4000, 5000);
 
         // seeds
         Seeds pszenicaZiarno = new Seeds("pszenica", 2, 1, 0, 12, 16, true, 1000, 250, pszenica);
         Seeds kukurydzaZiarno = new Seeds("kukurydza", 3, 2, 0, 15, 18, true, 1200, 180, kukurydza);
+        Seeds rzepakNasiona = new Seeds("nasiona rzepaku", 100, 40, 0, 23, 29, false, 2000, 4, rzepak);
+        Seeds burakNasiona = new Seeds("nasiona buraka", 20, 10, 0, 17, 21, false, 700, 2, burak);
 
         // yields
-        Yield rzepakZbior = new Yield("rzepak", 3, true, 0);
+        Yield rzepakZbior = new Yield("rzepak", 3, false, 0);
         Yield burakZbior = new Yield("burak pastewny", 1, true, 0);
 
+        // resources
+        Resource krowieMleko = new Resource("mleko", 18, 1, "l");
+
         // animals
+        Animal krowa = new Animal("krowa", 20, 2, 130, 5, false, 6, 3, krowieMleko);
 
 
         availableSeeds.add(pszenicaZiarno);
         availableSeeds.add(kukurydzaZiarno);
+        availableSeeds.add(rzepakNasiona);
+        availableSeeds.add(burakNasiona);
         availableCrops.add(pszenica);
         availableCrops.add(kukurydza);
         availableCrops.add(rzepak);
         availableCrops.add(burak);
         availableYields.add(rzepakZbior);
         availableYields.add(burakZbior);
+        availableResources.add(krowieMleko);
+        availableAnimals.add(krowa);
 
         wasInitiated = true;
     }
