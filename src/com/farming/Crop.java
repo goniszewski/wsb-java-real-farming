@@ -11,7 +11,8 @@ public class Crop {
     private Integer givesKgPerH;
     private Integer harvestCost;
 
-    public Crop(String name, Integer growingTime, Integer protectionCostPerH, String seedsFromHarvest, String yieldFromHarvest, Integer givesKgPerH, Integer harvestCost) {
+    public Crop(String name, Integer growingTime, Integer protectionCostPerH, String seedsFromHarvest,
+                String yieldFromHarvest, Integer givesKgPerH, Integer harvestCost) {
         this.name = name;
         this.age = 0;
         this.growingTime = growingTime;
@@ -30,10 +31,20 @@ public class Crop {
         } else if ((player.getFarm().canHoldStocks() - player.getFarm().nowHoldsStocks()) < givesKgPerH) {
             System.out.println("\nMasz za mało miejsca na magazynowanie zbiorów.\n");
         } else {
-            player.getFarm().addStocks(this,player);
+            player.getFarm().addStocks(this, player);
             player.setCash(player.getCash() - harvestCost);
+            player.getFarm().releaseField(1);
             player.getFarm().getCrops().remove(this);
             System.out.println("Żniwa zostały zebrane.");
+        }
+    }
+
+    public void chanceOfParasites(Player player) {
+        int random = (int) (Math.random() * 100);
+        if (age > (int) growingTime / 2 && 10 >= random) {
+            System.out.println("\n\n\nSusza? Powódź? Stonka?!\nTracisz 1 hektar upraw: " + name + "\n\n\n");
+            player.getFarm().removeCrop(this);
+            player.getFarm().releaseField(1);
         }
     }
 

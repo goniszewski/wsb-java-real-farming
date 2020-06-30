@@ -13,7 +13,7 @@ public class Farm {
     private ArrayList<Resource> resources = new ArrayList<Resource>();
     private Integer fieldsInHectares = 0;
     private Integer usedHectares = 0;
-    private final Integer cashPerHectare = 50000;
+    private final Integer cashPerHectare = 50000 + priceFluctuations(2000);
 
 
     public Farm(Integer price, ArrayList<Building> buildings, Integer fieldsInHectares) {
@@ -23,6 +23,18 @@ public class Farm {
         this.fieldsInHectares = ThreadLocalRandom.current().nextInt(1, 11);
         this.price = (fieldsInHectares * cashPerHectare);
     }
+
+    public Integer priceFluctuations(int value) {
+        Integer randomPrice = ThreadLocalRandom.current().nextInt(1, ((int) value+2) );
+        Integer random = (int) (Math.random() * 100);
+        if (random <= 20) {
+            return (Integer) Math.max(random,1);
+        } else if (random >= 80) {
+            return (Integer) (-random);
+        }
+        return (Integer) 0;
+    }
+
 
     @Override
     public String toString() {
@@ -35,6 +47,7 @@ public class Farm {
                 " \nhektarów ziemi: " + fieldsInHectares +
                 ", \nhektarów w użyciu: " + usedHectares + "\n";
     }
+
 
     public String displayBuildings() {
         StringBuilder list = new StringBuilder();
@@ -54,7 +67,8 @@ public class Farm {
     public String displayCrops() {
         StringBuilder list = new StringBuilder();
         for (Crop crop : crops) {
-            list.append(crop.getName()).append(" (tygodni: ").append(crop.getAge()).append("/").append(crop.getGrowingTime()).append("), ");
+            list.append(crop.getName()).append(" (tygodni: " +
+                    "").append(crop.getAge()).append("/").append(crop.getGrowingTime()).append("), ");
         }
         return (list.toString().length() < 10 ? "brak" : list.toString());
     }
@@ -70,7 +84,8 @@ public class Farm {
     public String displayAnimals() {
         StringBuilder list = new StringBuilder();
         for (Animal animal : animals) {
-            list.append(animal.getSpecies()).append(" (tygodni: ").append(animal.getAge()).append("/").append(animal.getMatureInWeeks()).append(",");
+            list.append(animal.getSpecies()).append(" (tygodni: " +
+                    "").append(animal.getAge()).append("/").append(animal.getMatureInWeeks()).append(",");
         }
         return (list.toString().length() < 10 ? "brak" : list.toString());
     }
@@ -161,7 +176,8 @@ public class Farm {
         if (player.getFarm().getSeeds().get(index).getQuantityInKg() < quantityInKg) {
             System.out.println("Brak wystarczających ilości na stanie.");
         } else {
-            player.getFarm().getSeeds().get(index).setQuantityInKg(player.getFarm().getSeeds().get(index).getQuantityInKg() - quantityInKg);
+            player.getFarm().getSeeds().get(index).setQuantityInKg(player.getFarm().getSeeds().get(index).getQuantityInKg() -
+                    quantityInKg);
             player.setCash(player.getCash() + (player.getFarm().getSeeds().get(index).getSellPricePerKg() * quantityInKg));
         }
     }
@@ -170,7 +186,8 @@ public class Farm {
         if (player.getFarm().getYields().get(index).getQuantityInKg() < quantityInKg) {
             System.out.println("Brak wystarczających ilości na stanie.");
         } else {
-            player.getFarm().getYields().get(index).setQuantityInKg(player.getFarm().getYields().get(index).getQuantityInKg() - quantityInKg);
+            player.getFarm().getYields().get(index).setQuantityInKg(player.getFarm().getYields().get(index).getQuantityInKg()
+                    - quantityInKg);
             player.setCash(player.getCash() + (player.getFarm().getYields().get(index).getSellPricePerKg() * quantityInKg));
         }
     }
@@ -179,7 +196,8 @@ public class Farm {
         if (player.getFarm().getAnimals().get(index) == null) {
             System.out.println("Nie posiadasz takiego zwierzęcia.");
         } else if (player.getFarm().getAnimals().get(index).getMatureInWeeks() > 0) {
-            System.out.println("Zwierzę jest jeszcze za młode, poczekaj " + player.getFarm().getAnimals().get(index).getMatureInWeeks() + " tygodni.");
+            System.out.println("Zwierzę jest jeszcze za młode, poczekaj " +
+                    player.getFarm().getAnimals().get(index).getMatureInWeeks() + " tygodni.");
         } else {
             player.setCash(player.getCash() + player.getFarm().getAnimals().get(index).getSellPricePerKg());
             animals.remove(index);
@@ -209,8 +227,11 @@ public class Farm {
     public void sellResources(Player player) {
         int cashToAdd = 0;
         for (Resource resource : resources) {
-            cashToAdd += (resource.sellPriceByUnit * resource.quantity);
-            resources.remove(resource);
+            if (resource != null){
+                cashToAdd += ((resource.sellPriceByUnit + (int) priceFluctuations(resource.sellPriceByUnit)) *
+                        resource.quantity);
+                resources.remove(resource);
+            }
         }
         player.setCash(player.getCash() + cashToAdd);
     }
@@ -281,6 +302,10 @@ public class Farm {
         this.crops.add(crop);
     }
 
+    public void removeCrop(Crop crop) {
+        this.crops.remove(crop);
+    }
+
     public void addAnimal(Animal animal) {
         this.animals.add(animal);
     }
@@ -291,32 +316,32 @@ public class Farm {
             for (Seeds seeds : seeds) {
                 if (seeds.getName().equals(crop.getSeedsFromHarvest())) {
                     seeds.setQuantityInKg(seeds.getQuantityInKg() + crop.getGivesKgPerH());
-                    foundIt=true;
+                    foundIt = true;
                 }
             }
         } else {
             for (Yield yield : yields) {
                 if (yield.getName().equals(crop.getYieldFromHarvest())) {
                     yield.setQuantityInKg(yield.getQuantityInKg() + crop.getGivesKgPerH());
-                    foundIt=true;
+                    foundIt = true;
                 }
             }
         }
 
-        if (!foundIt){
+        if (!foundIt) {
             if (crop.getYieldFromHarvest() != null) {
-                for (Yield yield: player.getGame().getAvailableYields()){
+                for (Yield yield : player.getGame().getAvailableYields()) {
                     if (yield.getName().equals(crop.getYieldFromHarvest())) {
                         yields.add(yield);
-                        addStocks(crop,player);
+                        addStocks(crop, player);
                     }
                 }
             }
             if (crop.getSeedsFromHarvest() != null) {
-                for (Seeds seed: player.getGame().getAvailableSeeds()){
+                for (Seeds seed : player.getGame().getAvailableSeeds()) {
                     if (seed.getName().equals(crop.getSeedsFromHarvest())) {
                         seeds.add(seed);
-                        addStocks(crop,player);
+                        addStocks(crop, player);
                     }
                 }
             }
@@ -367,24 +392,6 @@ public class Farm {
         }
     }
 
-    public void addYield(Player player, String name, Integer givesKgPerH) {
-        boolean foundIt = false;
-
-        for (Yield yield : yields) {
-            if (yield.getName().equals(name)) {
-                yield.setQuantityInKg(yield.getQuantityInKg() + givesKgPerH);
-                foundIt = true;
-            }
-        }
-        if (!foundIt) {
-            for (Yield yield : player.getGame().getAvailableYields()) {
-                if (yield.getName().equals(name)) {
-                    player.getFarm().yields.add(yield);
-                }
-            }
-        }
-
-    }
 
     public Integer availableFood() {
         Integer food = 0;

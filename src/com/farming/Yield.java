@@ -1,6 +1,7 @@
 package com.farming;
 
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Yield {
     private String name;
@@ -13,6 +14,17 @@ public class Yield {
         this.sellPricePerKg = sellPricePerKg;
         this.canFeedAnimals = canFeedAnimals;
         this.quantityInKg = quantityInKg;
+    }
+
+    public Integer priceFluctuations(int value) {
+        Integer randomPrice = ThreadLocalRandom.current().nextInt(1, ((int) value+2) );
+        Integer random = (int) (Math.random() * 100);
+        if (random <= 20) {
+            return (Integer) Math.max(random, 1);
+        } else if (random >= 80) {
+            return (Integer) (-random);
+        }
+        return (Integer)0;
     }
 
     @Override
@@ -39,7 +51,7 @@ public class Yield {
     }
 
     public Integer getSellPricePerKg() {
-        return sellPricePerKg;
+        return sellPricePerKg+priceFluctuations(sellPricePerKg);
     }
 
     public Boolean getCanFeedAnimals() {

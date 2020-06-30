@@ -1,5 +1,7 @@
 package com.farming;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Seeds {
     private String name;
     private Integer buyPricePerKg;
@@ -14,7 +16,9 @@ public class Seeds {
     private Crop toCrop;
 
 
-    public Seeds(String name, Integer buyPricePerKg, Integer sellPricePerKg, Integer quantityInKg, Integer canBePlantedStartedIn, Integer mustBePlantedBefore, Boolean canUseSeeds, Integer groundPreparingCost, Integer needsKgPerH, Crop toCrop) {
+    public Seeds(String name, Integer buyPricePerKg, Integer sellPricePerKg, Integer quantityInKg,
+                 Integer canBePlantedStartedIn, Integer mustBePlantedBefore, Boolean canUseSeeds,
+                 Integer groundPreparingCost, Integer needsKgPerH, Crop toCrop) {
         this.name = name;
         this.buyPricePerKg = buyPricePerKg;
         this.sellPricePerKg = sellPricePerKg;
@@ -27,16 +31,29 @@ public class Seeds {
         this.toCrop = toCrop;
     }
 
+
+    public Integer priceFluctuations(int value) {
+        Integer randomPrice = ThreadLocalRandom.current().nextInt(1, ((int) value+2) );
+        Integer random = (int) (Math.random() * 100);
+        if (random <= 20) {
+            return (Integer) Math.max(random,1);
+        } else if (random >= 80) {
+            return (Integer) (-random);
+        }
+        return (Integer)0;
+    }
+
     public void plantSeeds(Player player) {
 
         if (player.getCash() < groundPreparingCost) {
             System.out.println("Brak wystarczających funduszy.");
         } else if ((mustBePlantedBefore < player.getWeek()) || (player.getWeek() < canBePlantedStartedIn)) {
-            System.out.println("Roślina musi być zasadzona między " + canBePlantedStartedIn + " a " + mustBePlantedBefore + " tygodniem roku.");
+            System.out.println("Roślina musi być zasadzona między " + canBePlantedStartedIn + " a " +
+                    mustBePlantedBefore + " tygodniem roku.");
         } else if (player.getFarm().displayFreeHectares() < 1) {
             System.out.println("Masz za mało ziemi.");
-        }  else {
-            for (Seeds storedSeeds:player.getFarm().getSeeds()){
+        } else {
+            for (Seeds storedSeeds : player.getFarm().getSeeds()) {
                 if ((storedSeeds.getName().equals(name) && (storedSeeds.getQuantityInKg() >= needsKgPerH))) {
                     player.setCash(player.getCash() - groundPreparingCost);
                     player.getFarm().removeStock(this);
@@ -44,27 +61,27 @@ public class Seeds {
                     System.out.println("Zasiano: " + name);
                     player.getFarm().reserveField(1);
                     break;
-                } else if (storedSeeds.name.equals(name)){
-                    System.out.println("Brak wystarczającej ilości nasion (potrzeba "+needsKgPerH+" kg/ha).");
+                } else if (storedSeeds.name.equals(name)) {
+                    System.out.println("Brak wystarczającej ilości nasion (potrzeba " + needsKgPerH + " kg/ha).");
                     break;
                 } else {
                     System.out.println("Nie posiadasz takich nasion.");
                 }
-
-
             }
         }
     }
+
 
     @Override
     public String toString() {
         String text = "";
         try {
             text = name +
-                    "\nilość na stanie: " + (quantityInKg.equals(-1)?"~":quantityInKg) + " kg" +
+                    "\nilość na stanie: " + (quantityInKg.equals(-1) ? "~" : quantityInKg) + " kg" +
                     ", \ncena zakupu /kg: " + buyPricePerKg + " zł" +
                     ", \ncena sprzedaży /kg: " + sellPricePerKg + " zł" +
-                    ", \nilość potrzebna do zasadzenia 1 ha: " + needsKgPerH + " kg (" + needsKgPerH * buyPricePerKg + " zł)" +
+                    ", \nilość potrzebna do zasadzenia 1 ha: " + needsKgPerH + " kg (" +
+                    needsKgPerH * buyPricePerKg + " zł)" +
                     ", \nmożna posadzić w tyg.: " + canBePlantedStartedIn +
                     ", \nnależy posadzić przed tyg.: " + mustBePlantedBefore +
                     ", \nmożna zasadzić z plonów: " + (canUseSeeds ? "tak" : "nie") + "\n";
@@ -80,11 +97,11 @@ public class Seeds {
     }
 
     public Integer getBuyPricePerKg() {
-        return buyPricePerKg;
+        return buyPricePerKg+priceFluctuations(buyPricePerKg);
     }
 
     public Integer getSellPricePerKg() {
-        return sellPricePerKg;
+        return sellPricePerKg+priceFluctuations(sellPricePerKg);
     }
 
     public Integer getCanBePlantedStartedIn() {

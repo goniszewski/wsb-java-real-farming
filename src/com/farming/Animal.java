@@ -1,5 +1,7 @@
 package com.farming;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Animal {
 
     private String species;
@@ -7,6 +9,7 @@ public class Animal {
     private Integer weight = 0;
     private Integer eatsWeightWorthPerWeek = 0;
     private Integer weightGain = getWeightGain();
+    private Integer fixedWeight;
     private Integer matureInWeeks;
     private Integer eats = getEats();
     private Boolean canReproduce = (age == matureInWeeks);
@@ -18,10 +21,13 @@ public class Animal {
     private Resource givesPerWeek;
 
 
-    public Animal(String species, Integer weight, Integer eatsWeightWorthPerWeek, Integer matureInWeeks, Integer reproductionChance, Boolean canSell, Integer buyPricePerKg, Integer sellPricePerKg, Resource givesPerWeek) {
+    public Animal(String species, Integer weight, Integer eatsWeightWorthPerWeek, Integer fixedWeight,
+                  Integer matureInWeeks, Integer reproductionChance, Boolean canSell, Integer buyPricePerKg,
+                  Integer sellPricePerKg, Resource givesPerWeek) {
         this.species = species;
         this.weight = weight;
         this.eatsWeightWorthPerWeek = eatsWeightWorthPerWeek;
+        this.fixedWeight = fixedWeight;
         this.matureInWeeks = matureInWeeks;
         this.reproductionChance = reproductionChance;
         this.canSell = canSell;
@@ -30,18 +36,42 @@ public class Animal {
         this.givesPerWeek = givesPerWeek;
     }
 
+    public Integer priceFluctuations(int value) {
+        Integer randomPrice = ThreadLocalRandom.current().nextInt(1, ((int) value+2) );
+        Integer random = (int) (Math.random() * 100);
+        if (random <= 10) {
+            return Math.max(((Integer) random / 30), 1);
+        } else if (random >= 90) {
+            return (Integer) (-random/30);
+        }
+        return (Integer)0;
+    }
+
+    public Integer getWeightGain() {
+        return (weight * eatsWeightWorthPerWeek / 100) + (fixedWeight == null ? 1 : fixedWeight);
+    }
+
     public void gainWeight() {
         if (matureInWeeks > 1) {
             weight += getWeightGain();
         }
     }
 
-    public Integer getWeightGain() {
-        return (weight * eatsWeightWorthPerWeek / 100) + 1;
+    public void tryToReproduce(Player player) {
+        int random = (int) (Math.random() * 100);
+        if (canReproduce && reproductionChance >= random) {
+            for (Animal animal : player.getGame().getAvailableAnimals()) {
+                if (animal.species.equals(species)) {
+                    player.getFarm().addAnimal(animal);
+                    System.out.println("\n\nNarodziny nowego zwierzęcia: " + species + "\n\n");
+                }
+            }
+        }
     }
 
+
     public Integer getEats() {
-        return (weight * eatsWeightWorthPerWeek) + 1;
+        return (weight * eatsWeightWorthPerWeek) + (fixedWeight == null ? 1 : fixedWeight);
     }
 
     @Override
@@ -55,9 +85,12 @@ public class Animal {
                 ", \ngotowość do rozrodu: " + (canReproduce ? "tak" : "nie") +
                 ", \nszansa na ciążę: " + reproductionChance + "%" +
                 ", \nmożna sprzedać: " + (canSell ? "tak" : "jeszcze nie") +
-                ", \ncena zakupu /kg: " + buyPricePerKg + " zł (+ " + (buyPricePerKg * buyPriceMultiplier) + " zł opłat)" +
-                ", \ncena sprzedaży /kg: " + sellPricePerKg + " zł (" + (sellPricePerKg * weight) + " zł obecnie)" +
-                ", \nzapewnia na tydzień: " + givesPerWeek.name + "(" + givesPerWeek.quantity + " " + givesPerWeek.unitToDisplay + " * " + givesPerWeek.sellPriceByUnit + " zł)\n";
+                ", \ncena zakupu /kg: " + buyPricePerKg + " zł (+ " + (buyPricePerKg * buyPriceMultiplier) +
+                " zł opłat)" +
+                ", \ncena sprzedaży /kg: " + sellPricePerKg + " zł (" + (sellPricePerKg * weight) +
+                " zł obecnie)" +
+                ", \nzapewnia na tydzień: " + givesPerWeek.name + "(" + givesPerWeek.quantity +
+                " " + givesPerWeek.unitToDisplay + " * " + givesPerWeek.sellPriceByUnit + " zł)\n";
     }
 
 
@@ -101,11 +134,11 @@ public class Animal {
     }
 
     public Integer getBuyPricePerKg() {
-        return buyPricePerKg * buyPriceMultiplier;
+        return (buyPricePerKg * buyPriceMultiplier)+priceFluctuations(buyPricePerKg);
     }
 
     public Integer getSellPricePerKg() {
-        return sellPricePerKg;
+        return sellPricePerKg+priceFluctuations(sellPricePerKg);
     }
 
     public Resource getGivesPerWeek() {

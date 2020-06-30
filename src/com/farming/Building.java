@@ -1,6 +1,7 @@
 package com.farming;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Building {
 
@@ -16,11 +17,22 @@ public class Building {
         this.price = price;
     }
 
+    public Integer priceFluctuations(int value) {
+        Integer randomPrice = ThreadLocalRandom.current().nextInt(1, ((int) value+2) );
+        Integer random = (int) (Math.random() * 100);
+        if (random <= 20) {
+            return (Integer) Math.max(random,100);
+        } else if (random >= 80) {
+            return (Integer) (-random);
+        }
+        return (Integer) 0;
+    }
+
     @Override
     public String toString() {
         return type +
-                ",\n może przechowywać zwierząt: " + canHoldAnimals + " szt."+
-                ",\n może przechowywać zbiorów: " + canHoldStocks/1000 + " ton" +
+                ",\n może przechowywać zwierząt: " + canHoldAnimals + " szt." +
+                ",\n może przechowywać zbiorów: " + canHoldStocks / 1000 + " ton" +
                 ",\n cena zakupu: " + price + " zł\n";
     }
 
@@ -37,7 +49,7 @@ public class Building {
     }
 
     public Integer getPrice() {
-        return price;
+        return price + priceFluctuations((int) price / 2);
     }
 
     public void setType(String type) {
@@ -57,7 +69,8 @@ public class Building {
     }
 
     private static Integer randInt(Integer min, Integer max) {
-        return new Random().nextInt((max - min) + 1) + min;
+        return new Random().nextInt((max - min) +
+                1) + min;
     }
 
 
