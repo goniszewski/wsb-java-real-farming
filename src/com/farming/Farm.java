@@ -84,8 +84,8 @@ public class Farm {
     public String displayAnimals() {
         StringBuilder list = new StringBuilder();
         for (Animal animal : animals) {
-            list.append(animal.getSpecies()).append(" (tygodni: " +
-                    "").append(animal.getAge()).append("/").append(animal.getMatureInWeeks()).append(",");
+            list.append(animal.getSpecies()).append(" (wiek/tyg.: " +
+                    "").append(animal.getAge()).append("/").append(animal.getMatureInWeeks()).append("), ");
         }
         return (list.toString().length() < 10 ? "brak" : list.toString());
     }

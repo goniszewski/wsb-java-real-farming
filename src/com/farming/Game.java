@@ -23,6 +23,7 @@ public class Game {
     private String menu = "";
     private String choice = "";
     private Boolean wasInitiated = false;
+    private Boolean stillWantToPlay = false;
 
 
     public Game(Player player) {
@@ -180,6 +181,26 @@ public class Game {
         }
     }
 
+    public void winner() {
+        if (!stillWantToPlay) {
+            System.out.println("\n\n" + "🏆🏅".repeat(20));
+            System.out.println("\n\n\nGra zakończona zwycięstwem!" +
+                    "\n\nChcesz grać dalej? Wpisz 'ok'\n\n");
+            System.out.println("Naciśnij 'N' aby zacząć nową grę.\n");
+            System.out.println("🏆🏅".repeat(20) + "\n\n");
+
+            String selected = "";
+            Scanner scanner = new Scanner(System.in);
+            selected = scanner.nextLine();
+            if ((selected.equals("n")) || selected.equals("N")) {
+                choiceSelector("n");
+            } else if (selected.equals("ok")) {
+                stillWantToPlay = true;
+                showMenu();
+            }
+        }
+    }
+
     public void nextWeek() {
         ArrayList<String> wasUpdated = new ArrayList<>();
         Integer playersCashBefore = player.getCash();
@@ -192,6 +213,14 @@ public class Game {
         if (player.getCash() <= 0) {
             gameOver();
         }
+
+        if (player.getFarm().nowHoldsStocks() > 500000) {
+            if (player.getFarm().getAnimals().get(19) != null && player.getFarm().getCrops().get(4) != null) {
+                System.out.println("\n\nMasz więcej co najmniej 500 ton jedzenia dla zwierząt, " +
+                        "\n20 zwierząt oraz 5 upraw. Gratulacje!\n\n");
+            }
+        }
+
         player.getFarm().sellResources(player);
         cashFromResources = player.getCash() - playersCashBefore;
         for (Crop crop : player.getFarm().getCrops()) {
@@ -307,11 +336,13 @@ public class Game {
                 switch (menu) {
                     case "main":
                         if (this.player.getFarm() != null) {
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nInformacje o farmie:\n");
                             System.out.println(player.getFarm().toString());
                             System.out.println("\nNaciśnij 'L' aby przejść do zakupu ziemi.");
                             System.out.println("\nNaciśnij 'B' aby przejść do zakupu budynków.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             userInput("main");
                         } else {
                             int farmNo = 1;
@@ -323,6 +354,7 @@ public class Game {
                             }
                             System.out.println("\nWybierz numer farmy, którą chcesz kupić " +
                                     "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             String selected = "";
                             Scanner scanner = new Scanner(System.in);
                             selected = scanner.nextLine();
@@ -341,9 +373,11 @@ public class Game {
                 switch (menu) {
                     case "main":
                         if (player.getFarm().getCrops().isEmpty()) {
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nObecnie nie posiadasz żadnych upraw.");
                             System.out.println("\nNaciśnij 'P' aby przejść do sadzenia roślin.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             userInput("main");
                         } else {
                             int cropNo = 1;
@@ -358,7 +392,7 @@ public class Game {
                                     "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
                             String selected = "";
                             Scanner scanner = new Scanner(System.in);
-                            System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             selected = scanner.nextLine();
                             if (selected.equals("0")) {
                                 choiceSelector("menu");
@@ -381,6 +415,7 @@ public class Game {
                             System.out.println("\nObecnie nie posiadasz żadnych nasion.\n");
                             System.out.println("\nNaciśnij 'S' aby przejść do zakupu nasion.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             userInput("main");
                         } else {
                             System.out.println("\n\n" + "-".repeat(40));
@@ -395,6 +430,7 @@ public class Game {
                             System.out.println("\nNaciśnij 'S' aby przejść do zakupu nasion.");
                             System.out.println("\nSprzedaj 1 tonę danych nasion " +
                                     "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             selected = scanner.nextLine();
                             if (selected.equals("0")) {
                                 choiceSelector("menu");
@@ -414,7 +450,8 @@ public class Game {
                         if (player.getFarm().getYields().isEmpty()) {
                             System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nObecnie nie posiadasz żadnych zbiorów.");
-                            System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.");
+                            System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             userInput("main");
                         } else {
                             System.out.println("\n\n" + "-".repeat(40));
@@ -428,6 +465,7 @@ public class Game {
                             Scanner scanner = new Scanner(System.in);
                             System.out.println("\nSprzedaj 1 tonę danych zbiorów " +
                                     "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             selected = scanner.nextLine();
                             if (selected.equals("0")) {
                                 choiceSelector("menu");
@@ -446,9 +484,11 @@ public class Game {
                     case "main":
                         int animalNo = 1;
                         if (player.getFarm().getAnimals().isEmpty()) {
+                            System.out.println("\n\n" + "-".repeat(40));
                             System.out.println("\nObecnie nie posiadasz żadnych zwierząt.");
                             System.out.println("\n\nNaciśnij 'A' aby przejść do zakupu zwierząt.");
                             System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             userInput("main");
                         } else {
                             for (Animal animal : player.getFarm().getAnimals()) {
@@ -463,6 +503,7 @@ public class Game {
                             Scanner scanner = new Scanner(System.in);
                             System.out.println("\nSprzedaj dane zwierzę " +
                                     "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                            System.out.println("-".repeat(40) + "\n\n");
                             selected = scanner.nextLine();
                             if (selected.equals("0")) {
                                 choiceSelector("menu");
@@ -476,10 +517,7 @@ public class Game {
                         }
                 }
             case "7":
-                switch (menu) {
-                    case "main":
-
-                }
+                showMenu();
             case "0":
                 setMenu("main");
                 showMenu();
@@ -504,6 +542,7 @@ public class Game {
                     }
                     System.out.println("\nWybierz nasiona do zakupu " +
                             "albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                    System.out.println("-".repeat(40) + "\n\n");
                     if (player.getFarm() == null) {
                         showMenu();
                     } else {
@@ -542,6 +581,7 @@ public class Game {
                         animalNo++;
                     }
                     System.out.println("\nWybierz młode do zakupu albo naciśnij '0' aby wrócić do głównego menu.\n\n");
+                    System.out.println("-".repeat(40) + "\n\n");
                     if (player.getFarm() == null) {
                         showMenu();
                     } else {
@@ -584,6 +624,7 @@ public class Game {
                     }
                     System.out.println("\nWybierz nasiona do zasadzenia " +
                             "albo naciśnij '0' aby wrócić do głównego menu.");
+                    System.out.println("-".repeat(40) + "\n\n");
                     String selected = "";
                     Scanner scanner = new Scanner(System.in);
                     selected = scanner.nextLine();
@@ -601,6 +642,7 @@ public class Game {
                 } else {
                     System.out.println("\nOho, ktoś tutaj nie zainicjował instancji!");
                     System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.");
+                    System.out.println("-".repeat(40) + "\n\n");
                     setMenu("main");
                 }
 
@@ -616,6 +658,7 @@ public class Game {
                     System.out.println("\n\n\nWpisz ile hektarów ziemi chcesz kupić (1 ha = " +
                             player.getFarm().getCashPerHectare() + " zł).\n\n\n");
                     System.out.println("\nNaciśnij '0' aby wrócić do głównego menu.");
+                    System.out.println("-".repeat(40) + "\n\n");
                     String selected = "";
                     Scanner scanner = new Scanner(System.in);
                     selected = scanner.nextLine();
@@ -644,6 +687,7 @@ public class Game {
                         buildingNo++;
                     }
                     System.out.println("\nWybierz budynek do zakupu albo naciśnij '0' aby wrócić do głównego menu.");
+                    System.out.println("-".repeat(40) + "\n\n");
                     String selected = "";
                     Scanner scanner = new Scanner(System.in);
                     selected = scanner.nextLine();
